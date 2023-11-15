@@ -1,0 +1,34 @@
+.todoItemContainer {
+    background: #fff;
+    border-radius: 8px;
+    margin-top: 8px;
+    padding: 16px;
+    position: relative;
+    box-shadow: 0 4px 8px grey;
+}
+
+.buttonsContainer {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+}
+
+button {
+    font-size: 16px;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+}
+
+.completedButton {
+    display: inline-block;
+    background-color: #22ee22;
+}
+
+.removeButton {
+    display: inline-block;
+    background-color: #ee2222;
+    margin-left: 8px;
+}
