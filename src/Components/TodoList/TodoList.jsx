@@ -1,14 +1,17 @@
 import React from 'react'
 import TodoListItem from '../TodoListItem/TodoListItem'
 import NewTodoForm from '../NewTodoForm/NewTodoForm';
-
+import { useSelector } from 'react-redux'
 import styles from './TodoList.module.scss';
 
-export default function TodoList({ todos = [{ text: "Hello" }] }) {
+export default function TodoList() {
+    const { todos } = useSelector(store => store.todoReducer)
+
     return (
         <div className={styles.listWrapper}>
             <NewTodoForm />
-            {todos.map(todo => <TodoListItem todo={todo} />)}
+            {console.log(todos)}
+            {todos.map(todo => <TodoListItem key={todo.id} todo={todo} />)}
         </div>
     )
 }
