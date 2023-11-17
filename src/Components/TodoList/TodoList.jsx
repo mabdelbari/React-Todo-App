@@ -10,8 +10,9 @@ export default function TodoList() {
     return (
         <div className={styles.listWrapper}>
             <NewTodoForm />
-            {console.log(todos)}
-            {todos.map(todo => <TodoListItem key={todo.id} todo={todo} />)}
+            {todos.map(todo => !todo.isCompleted ? <TodoListItem key={todo.id} todo={todo} /> : null)}
+            <h2>Completed</h2>
+            {todos.map(todo => todo.isCompleted ? <TodoListItem key={todo.id} todo={todo} /> : null)}
         </div>
     )
 }
