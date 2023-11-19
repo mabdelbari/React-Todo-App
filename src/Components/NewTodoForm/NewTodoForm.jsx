@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux'
-import { addTodo } from '../../Redux/todoSlice'
+import { addTodo, createTodo } from '../../Redux/todoSlice'
 import styles from './NewTodoForm.module.scss';
 
 export default function NewTodoForm() {
@@ -10,7 +10,7 @@ export default function NewTodoForm() {
 
     const handleAddTodo = () => {
         if (inputValue) {
-            dispatch(addTodo(inputValue))
+            dispatch(createTodo(inputValue))
             setInputValue('')
         }
     }
