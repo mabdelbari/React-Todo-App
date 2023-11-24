@@ -17,43 +17,43 @@ const initialState = {
 const todoSlice = createSlice({
     name: "todos",
     initialState,
-    reducers: {
-        addTodo: (state, action) => {
-            const newTodo = {
-                id: Date.now(),
-                text: action.payload,
-                isCompleted: false
-            };
-            localStorage.setItem("todoList", JSON.stringify([...state.todos, newTodo]))
-            return {
-                ...state,
-                todos: [...state.todos, newTodo]
-            }
-        },
-        removeTodo: (state, action) => {
-            const filteredTodos = state.todos.filter(item => item.id !== action.payload)
-            localStorage.setItem("todoList", JSON.stringify(filteredTodos))
-            return {
-                ...state,
-                todos: filteredTodos
-            }
-        },
-        triggerComplete: (state, action) => {
-            const updatedTodos = state.todos.map(todo => {
-                if (todo.id === action.payload) {
-                    return { ...todo, isCompleted: !todo.isCompleted };
-                }
+    // reducers: {
+    //     addTodo: (state, action) => {
+    //         const newTodo = {
+    //             id: Date.now(),
+    //             text: action.payload,
+    //             isCompleted: false
+    //         };
+    //         localStorage.setItem("todoList", JSON.stringify([...state.todos, newTodo]))
+    //         return {
+    //             ...state,
+    //             todos: [...state.todos, newTodo]
+    //         }
+    //     },
+    //     removeTodo: (state, action) => {
+    //         const filteredTodos = state.todos.filter(item => item.id !== action.payload)
+    //         localStorage.setItem("todoList", JSON.stringify(filteredTodos))
+    //         return {
+    //             ...state,
+    //             todos: filteredTodos
+    //         }
+    //     },
+    //     triggerComplete: (state, action) => {
+    //         const updatedTodos = state.todos.map(todo => {
+    //             if (todo.id === action.payload) {
+    //                 return { ...todo, isCompleted: !todo.isCompleted };
+    //             }
 
-                return todo;
-            })
-            localStorage.setItem("todoList", JSON.stringify(updatedTodos))
-            return {
-                ...state,
-                todos: updatedTodos
-            }
-        }
+    //             return todo;
+    //         })
+    //         localStorage.setItem("todoList", JSON.stringify(updatedTodos))
+    //         return {
+    //             ...state,
+    //             todos: updatedTodos
+    //         }
+    //     }
 
-    },
+    // },
     extraReducers: (builder) => {
         builder
             .addCase(getTodos.pending, (state) => {
@@ -66,7 +66,7 @@ const todoSlice = createSlice({
                 return {
                     ...state,
                     isLoading: false,
-                    todos: [...state.todos, ...action.payload],
+                    todos: [...action.payload],
                     error: ""
                 }
             })
@@ -87,7 +87,7 @@ const todoSlice = createSlice({
                 return {
                     ...state,
                     isLoading: false,
-                    completedTodos: [...state.completedTodos, ...action.payload],
+                    completedTodos: [...action.payload],
                     error: ""
                 }
             })
@@ -126,26 +126,27 @@ const todoSlice = createSlice({
                 }
             })
             .addCase(triggerTodo.fulfilled, (state, action) => {
-                if (action.payload.method === 'close') {
-                    const filteredTodos = state.todos.filter(todo => (todo.task_id ? todo.task_id : todo.id) !== action.payload.todoId)
-                    const closedTodo = state.todos.find(todo => (todo.task_id ? todo.task_id : todo.id) === action.payload.todoId)
+                const { todo, method } = action.payload
+                const todoID = todo.completed_at ? todo.task_id : todo.id
+
+                if (method === 'close') {
+                    const filteredTodos = state.todos.filter(todo => (todo.completed_at ? todo.task_id : todo.id) !== todoID)
                     return {
                         ...state,
                         isLoading: false,
                         todos: filteredTodos,
-                        completedTodos: [...state.completedTodos, closedTodo],
+                        completedTodos: [...state.completedTodos, todo],
                         error: ''
                     }
-                } else {
-                    const filteredCompletedTodos = state.completedTodos.filter(todo => (todo.task_id ? todo.task_id : todo.id) !== action.payload.todoId)
-                    const openedTodo = state.completedTodos.find(todo => (todo.task_id ? todo.task_id : todo.id) === action.payload.todoId)
-                    return {
-                        ...state,
-                        isLoading: false,
-                        todos: [...state.todos, openedTodo],
-                        completedTodos: filteredCompletedTodos,
-                        error: ''
-                    }
+                }
+
+                const filteredCompletedTodos = state.completedTodos.filter(todo => (todo.completed_at ? todo.task_id : todo.id) !== todoID)
+                return {
+                    ...state,
+                    isLoading: false,
+                    todos: [...state.todos, todo],
+                    completedTodos: filteredCompletedTodos,
+                    error: ''
                 }
             })
             .addCase(triggerTodo.rejected, (state, action) => {
@@ -161,14 +162,27 @@ const todoSlice = createSlice({
                     isLoading: true
                 }
             })
-            .addCase(deleteTodo.fulfilled, (state, action) => {
-                const filteredTodos = state.todos.filter(item => item.id !== action.payload)
-                const filteredCompletedTodos = state.completedTodos.filter(item => item.id !== action.payload)
+            .addCase(deleteTodo.fulfilled, (state, { payload: removedTodo }) => {
+                if (removedTodo.completed_at) {
+                    const filteredTodos = state.todos.filter(todo => todo.task_id !== removedTodo.task_id)
+                    const filteredCompletedTodos = state.completedTodos.filter(todo => todo.task_id !== removedTodo.task_id)
+                    return {
+                        ...state,
+                        isLoading: false,
+                        todos: filteredTodos,
+                        completedTodos: filteredCompletedTodos,
+                        error: ''
+                    }
+                }
+
+                const filteredTodos = state.todos.filter(todo => todo.id !== removedTodo.id)
+                const filteredCompletedTodos = state.completedTodos.filter(todo => todo.id !== removedTodo.id)
                 return {
                     ...state,
                     isLoading: false,
                     todos: filteredTodos,
-                    completedTodos: filteredCompletedTodos
+                    completedTodos: filteredCompletedTodos,
+                    error: ''
                 }
             })
             .addCase(deleteTodo.rejected, (state, action) => {
@@ -216,27 +230,37 @@ export const createTodo = createAsyncThunk('todos/createTodo',
         } catch (error) {
             console.log(error)
         }
-
     })
 
-
 export const triggerTodo = createAsyncThunk('todos/triggerTodo',
-    async ({ todoId, method }) => {
+    async ({ todo, method }, { dispatch }) => {
         try {
-            axios.post(`${baseURL}/${todoId}/${method}`, {}, { headers })
+            if (todo.task_id) {
+                await axios.post(`${baseURL}/${todo.task_id}/${method}`, {}, { headers })
+            } else {
+                await axios.post(`${baseURL}/${todo.id}/${method}`, {}, { headers })
+            }
 
-            return { todoId, method }
+            dispatch(getTodos())
+            dispatch(getCompletedTodos())
+
+
+            return { todo, method }
         } catch (error) {
             console.log(error)
         }
     })
 
 export const deleteTodo = createAsyncThunk('todos/deleteTodo',
-    async (todoId) => {
+    async (todo) => {
         try {
-            axios.delete(`${baseURL}/${todoId}`, { headers })
+            if (todo.task_id) {
+                axios.delete(`${baseURL}/${todo.task_id}`, { headers })
+            } else {
+                axios.delete(`${baseURL}/${todo.id}`, { headers })
+            }
 
-            return todoId
+            return todo
         } catch (error) {
             console.log(error)
         }

@@ -1,26 +1,81 @@
 import React from 'react'
 import { useDispatch } from 'react-redux'
-import { deleteTodo, removeTodo, triggerComplete, triggerTodo } from '../../Redux/todoSlice'
+import { deleteTodo, triggerTodo } from '../../Redux/todoSlice'
 import styles from './TodoListItem.module.scss';
+import styled from 'styled-components';
+
+
+const TodoItemContainer = styled.div`
+    background: #fff;
+    border-radius: 8px;
+    margin-top: 8px;
+    padding: 16px;
+    position: relative;
+    box-shadow: 0 4px 8px grey;
+`;
+
+const WarningTodoItemContainer = styled(TodoItemContainer)`
+    border-bottom: ${props => (new Date(props.createdat) < new Date(Date.now() - 86400000 * 1)
+        ? '2px solid red'
+        : 'none')};
+`;
+
+const ButtonsContainer = styled.div`
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+`;
+
+const Button = styled.button`
+    font-size: 16px;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+    display: inline-block;
+`;
+
+const CompletedButton = styled(Button)`
+    background-color: #22ee22;
+`;
+
+const RemoveButton = styled(Button)`
+    background-color: #ee2222;
+    margin-left: 8px;
+`;
+
 
 export default function TodoListItem({ todo, method }) {
     const dispatch = useDispatch()
 
+    const Container = todo.completed_at ? TodoItemContainer : WarningTodoItemContainer
+
     return (
-        <div className={styles.todoItemContainer}>
+        <Container createdat={todo.created_at?.slice(0, 10)}>
             <h3>{todo.content}</h3>
-            <div className={styles.buttonsContainer}>
+            <p>
+                {todo.completed_at
+                    ? `Completed at: ${todo.completed_at.slice(0, 10)} ${todo.completed_at.slice(11, 19)}`
+                    : `Created at: ${todo.created_at.slice(0, 10)} ${todo.created_at.slice(11, 19)}`
+                }
+            </p>
+            <ButtonsContainer>
                 {
                     method === "reopen"
-                        ? <button
-                            className={styles.completedButton}
-                            onClick={() => dispatch(triggerTodo({ todoId: todo.task_id ? todo.task_id : todo.id, method: "reopen" }))} >Re-Open</button>
-                        : <button
-                            className={styles.completedButton}
-                            onClick={() => dispatch(triggerTodo({ todoId: todo.task_id ? todo.task_id : todo.id, method: "close" }))} >Close</button>
+                        ? <CompletedButton
+                            onClick={() => dispatch(triggerTodo({ todo, method: "reopen" }))}>
+                            Re-Open
+                        </CompletedButton>
+                        : <CompletedButton
+                            onClick={() => dispatch(triggerTodo({ todo, method: "close" }))}>
+                            Mark as Completed
+                        </CompletedButton>
                 }
-                <button className={styles.removeButton} onClick={() => dispatch(deleteTodo(todo.id))}>Remove</button>
-            </div>
-        </div>
+                <RemoveButton
+                    onClick={() => dispatch(deleteTodo(todo))}>Remove
+                </RemoveButton>
+            </ButtonsContainer>
+        </Container>
     )
 }
