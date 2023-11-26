@@ -3,7 +3,7 @@ import axios from "axios";
 
 const baseURL = 'https://api.todoist.com/rest/v2/tasks'
 const headers = {
-    Authorization: 'Bearer 36c1a12b19dec3c4e88eed26ed2b551a8ea760c1'
+    Authorization: 'Bearer 4b0b8023eb6314d37ca488e584d6dcdc0b03b348'
 }
 
 
